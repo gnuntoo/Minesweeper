@@ -17,12 +17,11 @@ func _ready():
 	print(OS.get_window_size())
 	randomize()
 	
-	generate_data(size)
+	initialize_grid()
+	spawn_mines()
 	OS.center_window()
-#	draw_grid()
 
-func generate_data(size):
-	# Initialize grid
+func initialize_grid():
 	for x in range(size.x):
 		grid.append([])
 		for y in range(size.y):
@@ -37,9 +36,8 @@ func generate_data(size):
 			add_child(t)
 			t.connect("left_click", self, "_on_left_click")
 			t.connect("right_click", self, "_on_right_click")
-		
-#		yield(get_tree().create_timer(0.03), "timeout")
-	# Spawn mines
+
+func spawn_mines():
 	var mines = 0
 	for i in range(max_mines):
 		var mine_location = Vector2(randi()%int(size.x), randi()%int(size.y))
@@ -50,7 +48,7 @@ func generate_data(size):
 
 		mine_tile.get_node("Label").text = "*"
 		mine_tile.is_mine = true
-#		mine_tile.get_child(0).color = ColorN("red")
+		
 		# Label surrounding tiles
 		for x in range(mine_location.x-1, mine_location.x+2):
 			for y in range(mine_location.y-1, mine_location.y+2):
@@ -59,9 +57,7 @@ func generate_data(size):
 					if t.is_mine == false:
 						t.adjacent_mines += 1
 						t.get_node("Label").text = str(t.adjacent_mines)
-#						yield(get_tree().create_timer(0.5), "timeout")
 
-#
 func get_surrounding_tiles(tile):
 	print("GST")
 	var tiles = []
