@@ -6,6 +6,7 @@ var tile_size = Vector2(32, 32)
 var grid = []
 var size = Vector2(40, 30)
 var max_mines = (size.x * size.y) * 0.1
+var is_started = false
 const MS_TILE : = preload("res://ms_tile.png")
 const MS_TILE_UC : = preload("res://ms_tile_uc.png")
 const MS_TILE_FLAG : = preload("res://ms_tile_flag.png")
@@ -18,7 +19,6 @@ func _ready():
 	randomize()
 	
 	initialize_grid()
-	spawn_mines()
 	OS.center_window()
 
 func initialize_grid():
@@ -37,15 +37,16 @@ func initialize_grid():
 			t.connect("left_click", self, "_on_left_click")
 			t.connect("right_click", self, "_on_right_click")
 
-func spawn_mines():
+func spawn_mines(start_tile):
 	var mines = 0
 	for i in range(max_mines):
 		var mine_location = Vector2(randi()%int(size.x), randi()%int(size.y))
+		while mine_location.x >= start_tile.index.x-1 and mine_location.x <= start_tile.index.x+1\
+			and mine_location.y >= start_tile.index.y-1 and mine_location.y <= start_tile.index.y+1:
+				mine_location = Vector2(randi()%int(size.x), randi()%int(size.y))
+				print("changed mine")
+				
 		var mine_tile = grid[mine_location.x][mine_location.y]
-		while mine_tile.is_mine:
-			mine_location = Vector2(randi()%int(size.x), randi()%int(size.y))
-			mine_tile = grid[mine_location.x][mine_location.y]
-
 		mine_tile.get_node("Label").text = "*"
 		mine_tile.is_mine = true
 		
@@ -59,7 +60,6 @@ func spawn_mines():
 						t.get_node("Label").text = str(t.adjacent_mines)
 
 func get_surrounding_tiles(tile):
-	print("GST")
 	var tiles = []
 	for x in range(tile.index.x - 1, tile.index.x + 2):
 		for y in range(tile.index.y - 1, tile.index.y + 2):
@@ -68,7 +68,6 @@ func get_surrounding_tiles(tile):
 	return tiles
 	
 func clear_surrounding_tiles(tile):
-	print("CST")
 	var tiles = get_surrounding_tiles(tile)
 	for i in tiles:
 		if i.is_masked:
@@ -80,6 +79,9 @@ func clear_surrounding_tiles(tile):
 func _on_left_click(tile):
 	if tile.is_masked:
 		tile.hide_mask()
+		if !is_started:
+			spawn_mines(tile)
+			is_started = true
 		if tile.is_mine:
 			game_over()
 		elif tile.adjacent_mines == 0:
